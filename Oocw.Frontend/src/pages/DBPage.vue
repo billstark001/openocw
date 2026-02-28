@@ -3,17 +3,15 @@
     <PageBanner />
     <RouteDisplay v-if="treeData"></RouteDisplay>
     <div v-if="!route.params.target" class="org-area">
-      <div v-for="org in orgs" :key="org.key" class="org-panel">
-        <router-link :to="'/db/' + (org.key)">
-          <img v-if="org.key == 'org.sos'" src="@/assets/svg/tit/chem.svg">
-          <img v-if="org.key == 'org.soe'" src="@/assets/svg/tit/robotic-arm.svg">
-          <img v-if="org.key == 'org.somct'" src="@/assets/svg/tit/mat.svg">
-          <img v-if="org.key == 'org.soc'" src="@/assets/svg/tit/chip.svg">
-          <img v-if="org.key == 'org.solst'" src="@/assets/svg/tit/bio.svg">
-          <img v-if="org.key == 'org.soes'" src="@/assets/svg/tit/city.svg">
-          <img v-if="org.key == 'crs.la'" src="@/assets/svg/tit/art.svg">
-          <img v-if="org.key == 'org.ext.trsdis'" src="@/assets/svg/tit/idea.svg">
-          <p>{{ t(org.key) }}</p>
+      <div v-if="loadingOrgs" class="org-loading">
+        <p>{{ t('crsl.noitem.db') }}</p>
+      </div>
+      <div v-for="org in rootOrgs" :key="org.code" class="org-panel">
+        <router-link :to="'/db/' + org.code">
+          <div class="org-icon" :data-type="org.type">
+            {{ org.name.charAt(0).toUpperCase() }}
+          </div>
+          <p>{{ org.name }}</p>
         </router-link>
       </div>
     </div>
@@ -42,19 +40,50 @@ import PageBanner from '@/components/lesser/PageBanner.vue';
 import PageFooter from '@/components/lesser/PageFooter.vue';
 import CourseList from '@/components/courses/CourseList.vue';
 
-import OrgTree from '@/assets/meta/orgtree.json';
-import Orgs from '@/assets/meta/orgs.json';
 import * as utils from '@/utils/query';
 import { CourseBrief, getCourseListByDepartment } from '@/api/query';
+import { OrganizationBrief, listOrganizations } from '@/api/organization';
 
 const { t } = useI18n();
 const route = useRoute();
 
 const treeData = ref<NavListData | undefined>();
-const curOpr = ref<string | undefined>();
 const courses = ref<utils.QueryResult<CourseBrief[]> | undefined>();
+const rootOrgs = ref<OrganizationBrief[]>([]);
+const loadingOrgs = ref(true);
 
-const orgs = Orgs as { key: string }[];
+// ── org tree helpers ───────────────────────────────────────────────────────
+
+function buildNavTree(orgs: OrganizationBrief[]): NavNode {
+  const childrenMap = new Map<string | null, OrganizationBrief[]>();
+  for (const o of orgs) {
+    const key = o.parentId ?? null;
+    if (!childrenMap.has(key)) childrenMap.set(key, []);
+    childrenMap.get(key)!.push(o);
+  }
+
+  function buildNode(org: OrganizationBrief): NavNode {
+    const kids = childrenMap.get(org.id) ?? [];
+    return {
+      key: org.code,
+      name: org.name,
+      action: kids.length > 0 ? 'children' : 'self',
+      children: kids.map(buildNode),
+    };
+  }
+
+  const roots = childrenMap.get(null) ?? [];
+  return {
+    key: 'root',
+    action: 'none',
+    children: [
+      ...roots.map(buildNode),
+      { key: 'meta.uncat', action: 'uncat', children: [] },
+    ],
+  };
+}
+
+// ── navigation helpers (unchanged logic) ──────────────────────────────────
 
 function getCurrentOpr(cur: NavNode, parents: NavNode[]): string[] {
   let ret: string[] = [];
@@ -68,25 +97,25 @@ function getCurrentOpr(cur: NavNode, parents: NavNode[]): string[] {
 }
 
 function identifyCurrentOpr(root: NavNode, path: string[]): string | undefined {
-  let parent: NavNode[] = [];
+  let parents: NavNode[] = [];
   let i = 0;
-
   let cur: NavNode = root;
+
   while (i < path.length) {
     const matched = cur.children.find(child => child.key === path[i]);
     if (matched) {
-      parent = [cur, ...parent];
+      parents = [cur, ...parents];
       cur = matched;
       i++;
     } else {
       cur = root;
-      parent = [];
+      parents = [];
       break;
     }
   }
 
-  const rets = getCurrentOpr(cur, parent);
-  return rets.length > 0 ? rets.join(",") : undefined;
+  const rets = getCurrentOpr(cur, parents);
+  return rets.length > 0 ? rets.join(',') : undefined;
 }
 
 function getTargetPath() {
@@ -96,25 +125,49 @@ function getTargetPath() {
   return utils.decodePath(target);
 }
 
+// ── data loading ───────────────────────────────────────────────────────────
+
+let _orgTree: NavNode | undefined;
+
+async function loadOrgs() {
+  loadingOrgs.value = true;
+  const res = await listOrganizations();
+  if (res.status === 200 && res.result) {
+    const orgs = res.result.list;
+    rootOrgs.value = orgs.filter(o => o.parentId === null);
+    _orgTree = buildNavTree(orgs);
+  }
+  loadingOrgs.value = false;
+}
 
 async function updateData() {
-  const target = getTargetPath();
-  curOpr.value = identifyCurrentOpr(OrgTree as NavNode, target);
+  if (!_orgTree) {
+    console.warn('[DBPage] updateData called before org tree was loaded.');
+    return;
+  }
 
-  const _res = await getCourseListByDepartment(curOpr.value ?? "uncat");
+  const target = getTargetPath();
+  const deptCode = identifyCurrentOpr(_orgTree, target);
+
+  const _res = await getCourseListByDepartment(deptCode ?? 'uncat');
   courses.value = undefined;
 
   treeData.value = {
-    node: OrgTree as NavNode,
+    node: _orgTree,
     selected: target,
     path: [],
-  }
+  };
 
   await nextTick();
   courses.value = _res;
 }
 
-onMounted(updateData);
+onMounted(async () => {
+  await loadOrgs();
+  if (route.params.target) {
+    await updateData();
+  }
+});
 
 watch(() => route.params, updateData);
 </script>
@@ -138,6 +191,12 @@ watch(() => route.params, updateData);
 
 .org-area {
   text-align: center;
+  padding: 20px 0;
+}
+
+.org-loading {
+  padding: 60px 20px;
+  font-size: larger;
 }
 
 .org-panel {
@@ -176,12 +235,23 @@ watch(() => route.params, updateData);
   opacity: 1;
 }
 
-.org-panel img {
-  height: 100px;
+.org-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 300;
+  background-color: var(--color-s-main-light-3);
+  color: var(--color-s-main-dark-2);
 }
 
-.dark-mode .org-panel img {
-  filter: invert(1);
+.dark-mode .org-icon {
+  background-color: var(--color-s-main-dark-2);
+  color: var(--color-s-main-light-3);
 }
 
 .org-panel p {

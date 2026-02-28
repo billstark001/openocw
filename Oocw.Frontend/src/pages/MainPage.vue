@@ -10,20 +10,20 @@
 
     </div>
     <div class="search-inner">
-      <input type="search" class="search-input" v-model="searchText" v-on:keyup="triggerSearch" autocomplete="off"
-        v-bind:placeholder="t('searchbar.search')" v-bind:aria-label="t('searchbar.search.hint')">
-      <div class="img-container" v-on:click="triggerSearch2">
+      <input type="search" class="search-input" v-model="searchText" v-on:keyup="onKeyUp" autocomplete="off"
+        v-bind:placeholder="t('searchbar.placeholder')" v-bind:aria-label="t('searchbar.hint')">
+      <div class="img-container" v-on:click="doSearch('kw')">
         <img src="../assets/svg/search.svg">
       </div>
 
     </div>
     <div class="button-panel">
       <span>{{ t('hp.search.hint') }}</span>
-      <button class="round-button s-main h">{{ t('hp.search.kw') }}</button>
-      <button class="round-button s-main h">{{ t('hp.search.faculty') }}</button>
-      <button class="round-button s-main h">{{ t('hp.search.code') }}</button>
-      <button class="round-button s-main h">{{ t('hp.search.name') }}</button>
-      <span>{{ t('hp.search.hint.rear') }}</span>
+      <button :class="['round-button', 's-main', 'h', currentMode === 'kw' ? 'active' : '']" @click="doSearch('kw')">{{ t('hp.search.kw') }}</button>
+      <button :class="['round-button', 's-main', 'h', currentMode === 'faculty' ? 'active' : '']" @click="doSearch('faculty')">{{ t('hp.search.faculty') }}</button>
+      <button :class="['round-button', 's-main', 'h', currentMode === 'code' ? 'active' : '']" @click="doSearch('code')">{{ t('hp.search.code') }}</button>
+      <button :class="['round-button', 's-main', 'h', currentMode === 'name' ? 'active' : '']" @click="doSearch('name')">{{ t('hp.search.name') }}</button>
+      <span>{{ t('hp.search.hintRear') }}</span>
     </div>
   </div>
 
@@ -31,8 +31,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter, useRoute } from 'vue-router';
 import PageFooter from '@/components/lesser/PageFooter.vue';
 
 const { t } = useI18n({
@@ -40,16 +41,20 @@ const { t } = useI18n({
   useScope: "local"
 });
 
-const searchText = ref('');
-function triggerSearch(e: KeyboardEvent): void {
-  if (e.key === 'Enter')
-    triggerSearch2();
-};
-function triggerSearch2(): void {
-  // TODO
-  console.log(`search ${searchText.value}`);
-};
+const router = useRouter();
+const route = useRoute();
 
+const searchText = ref('');
+const currentMode = computed(() => route.query.mode as string || 'kw');
+
+function doSearch(mode: string): void {
+  if (!searchText.value.trim()) return;
+  router.push(`/search?q=${encodeURIComponent(searchText.value)}&mode=${mode}`);
+}
+
+function onKeyUp(e: KeyboardEvent): void {
+  if (e.key === 'Enter') doSearch(currentMode.value);
+}
 </script>
 
 

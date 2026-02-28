@@ -3,8 +3,8 @@
     <li class="list-item">
       <details :class="['nav-list', child.children.length ? 'general' : 'unmarked']" :open="shouldOpen(child)">
         <summary>
-          <router-link v-if="hasAction(child)" :to="getActionHref(child)">{{ t(child.key) }}</router-link>
-          <span v-else>{{ t(child.key) }}</span>
+          <router-link v-if="hasAction(child)" :to="getActionHref(child)">{{ child.name ?? t(child.key) }}</router-link>
+          <span v-else>{{ child.name ?? t(child.key) }}</span>
         </summary>
         <NavList :data="generateData(child)"></NavList>
       </details>
@@ -19,6 +19,8 @@ import * as utils from '@/utils/query';
 
 export interface NavNode {
   key: string;
+  /** Optional display name. Falls back to `t(key)` when absent. */
+  name?: string;
   action: "none" | "self" | "parent" | "children" | "uncat";
   children: NavNode[];
 }

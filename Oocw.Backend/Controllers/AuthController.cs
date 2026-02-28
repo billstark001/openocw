@@ -40,6 +40,7 @@ public class AuthController : Controller
     
 
     [HttpPost("register")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("auth")]
     public async Task Register(UnamePwdBody b)
     {
         if (!UserUtils.IsValidUsername(b.uname))
@@ -63,6 +64,7 @@ public class AuthController : Controller
     }
 
     [HttpPost("auth")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("auth")]
     public async Task<AuthResult> Auth(UnamePwdBody b)
     {
         var u = await DbService.Wrapper.Users
@@ -77,6 +79,7 @@ public class AuthController : Controller
     }
 
     [HttpPost("login")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("auth")]
     public async Task<AuthResult> Login(UnamePwdBody b)
     {
         var val = await Auth(b);
