@@ -97,33 +97,35 @@ export async function getCourseListByDepartment(
   lang?: string,
   page?: number,
   pageSize?: number,
-): Promise<QueryResult<CourseBrief[]>> {
+): Promise<QueryResult<CourseBrief[]> & { totalPage?: number }> {
   const scheme = `/api/course/list/${encodeURIComponent(id)}?`
     + buildParams({ lang, page, pageSize });
   const raw = await getInfo<_ListResult<_BackendCourseBrief>>(scheme);
   if (raw.status !== 200 || !raw.result) {
     return { status: raw.status, info: raw.info };
   }
-  return { status: 200, info: raw.info, result: raw.result.list.map(_adaptCourseBrief) };
+  return { status: 200, info: raw.info, result: raw.result.list.map(_adaptCourseBrief), totalPage: raw.result.totalPage };
 }
 
 export async function getCourseList(
   lang?: string,
   page?: number,
   pageSize?: number,
-): Promise<QueryResult<CourseBrief[]>> {
+): Promise<QueryResult<CourseBrief[]> & { totalPage?: number }> {
   const scheme = `/api/course/list?` + buildParams({ lang, page, pageSize });
   const raw = await getInfo<_ListResult<_BackendCourseBrief>>(scheme);
   if (raw.status !== 200 || !raw.result) {
     return { status: raw.status, info: raw.info };
   }
-  return { status: 200, info: raw.info, result: raw.result.list.map(_adaptCourseBrief) };
+  return { status: 200, info: raw.info, result: raw.result.list.map(_adaptCourseBrief), totalPage: raw.result.totalPage };
 }
 
 // ── search ────────────────────────────────────────────────────────────────
 
-export interface SearchParams extends Record<string, string | number | undefined> {
-  queryStr?: string;
+export interface SearchParams {
+  infoVague?: string;
+  codeVague?: string;
+  contentVague?: string;
   page?: number;
   pageSize?: number;
 }
@@ -131,11 +133,16 @@ export interface SearchParams extends Record<string, string | number | undefined
 export async function searchCourses(
   params: SearchParams,
   lang?: string,
-): Promise<QueryResult<CourseBrief[]>> {
+): Promise<QueryResult<CourseBrief[]> & { totalPage?: number }> {
   const url = `/api/course/search?` + buildParams({ ...params, lang });
   const raw = await getInfo<_ListResult<_BackendCourseBrief>>(url);
   if (raw.status !== 200 || !raw.result) {
     return { status: raw.status, info: raw.info };
   }
-  return { status: 200, info: raw.info, result: raw.result.list.map(_adaptCourseBrief) };
+  return {
+    status: 200,
+    info: raw.info,
+    result: raw.result.list.map(_adaptCourseBrief),
+    totalPage: raw.result.totalPage,
+  };
 }

@@ -2,11 +2,11 @@
   <div class="course-brief">
     <img class="desc-img" src="@/assets/img/sakura.jpg">
     <p>
-      <span class="name">{{ name }}</span>
-      <span class="sub">{{ id }} / {{ className }}</span>
+      <span class="name">{{ courseInfo.name }}</span>
+      <span class="sub">{{ courseInfo.id }} / {{ courseInfo.className }}</span>
     </p>
     <p>
-      <span class="tag round-button s-sub" v-for="tag in tags" :key="tag">
+      <span class="tag round-button s-sub" v-for="tag in courseInfo.tags" :key="tag">
         {{ tag }}
       </span>
     </p>
@@ -14,7 +14,7 @@
       {{ trimmedDescription }}
     </p>
     <p>
-      <span class="lect round-button s-hollow" v-for="lect in lecturers" :key="lect.id">
+      <span class="lect round-button s-hollow" v-for="lect in courseInfo.lecturers" :key="lect.id">
         {{ lect.name }}
       </span> 
     </p>
@@ -35,9 +35,8 @@ const courseInfo = computed<CourseBriefInfo>(() => {
   return props.info && typeof props.info === 'object' ? props.info : defaultCourseBrief();
 });
 
-const { name, id, className, tags, description, lecturers } = courseInfo.value;
-
 const trimmedDescription = computed(() => {
+  const description = courseInfo.value.description;
   if (description.length < DESC_MAX_LENGTH) {
     return description;
   }
