@@ -10,10 +10,12 @@ using Oocw.Backend.Utils;
 using Oocw.Backend.Services;
 using Oocw.Utils;
 using Oocw.Database.Models;
+using DbUser = Oocw.Database.Models.User;
 using System;
 using System.Threading.Tasks;
 using Oocw.Backend.Models;
 using Oocw.Backend.Api;
+using Oocw.Backend.Auth;
 using System.Net;
 using Oocw.Database.Models.Technical;
 
@@ -130,6 +132,33 @@ public class CourseController : ControllerBase
     }
 
 
+    [RequireAuth]
+    [HttpPost("create")]
+    public async Task<object> CreateCourse(string? lang, [FromBody] CourseSchema course)
+    {
+        var user = HttpContext.GetAuthenticatedUser(DbUser.Role.Faculty);
+        lang ??= this.TryGetLanguage();
+
+        var newCourse = new Course
+        {
+            CourseCode = course.CourseCode,
+            Credit = course.Credit,
+            Departments = course.Departments,
+            Lecturers = course.Lecturers,
+            Tags = course.Tags,
+            Image = course.ImageLink,
+        };
+        newCourse.Name[lang] = course.Name;
+        newCourse.Content[lang] = course.Content;
+        newCourse.SetCreateTime();
+
+        var id = await DbService.Wrapper.Courses.InsertAsync(null, newCourse);
+        await SearchService.MarkCourseRecordDirty(id);
+
+        return new { id };
+    }
+
+    [RequireAuth]
     [HttpPost("edit")]
     public async Task Edit(string? lang, [FromBody] CourseSchema course)
     {

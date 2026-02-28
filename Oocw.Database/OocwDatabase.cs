@@ -33,6 +33,9 @@ public class OocwDatabase
     public IMongoCollection<CourseSelection> CourseSelections { get; protected set; }
     public IMongoCollection<AssignmentSubmission> AssignmentSubmissions { get; protected set; }
 
+    public IMongoCollection<UpdateRequest> UpdateRequests { get; protected set; }
+    public IMongoCollection<Feedback> Feedbacks { get; protected set; }
+
 
     public IMongoCollection<CourseRecord> CourseRecords { get; protected set; }
 
@@ -79,6 +82,9 @@ public class OocwDatabase
         CourseSelections = Database.GetCollection<CourseSelection>(nameof(CourseSelection));
         AssignmentSubmissions = Database.GetCollection<AssignmentSubmission>(nameof(AssignmentSubmission));
 
+        UpdateRequests = Database.GetCollection<UpdateRequest>(nameof(UpdateRequest));
+        Feedbacks = Database.GetCollection<Feedback>(nameof(Feedback));
+
         CourseRecords = Database.GetCollection<CourseRecord>(nameof(CourseRecord));
 
         Organizations = Database.GetCollection<Organization>(nameof(Organization));
@@ -93,6 +99,19 @@ public class OocwDatabase
         CreateDataModelUniqueIdIndex(CourseDiscussions);
         CreateDataModelUniqueIdIndex(CourseSelections);
         CreateDataModelUniqueIdIndex(AssignmentSubmissions);
+
+        CreateDataModelUniqueIdIndex(Feedbacks);
+
+        Feedbacks.Indexes.CreateOne(new CreateIndexModel<Feedback>(
+            Builders<Feedback>.IndexKeys.Ascending(x => x.ClassInstanceId)
+        ));
+
+        UpdateRequests.Indexes.CreateOne(new CreateIndexModel<UpdateRequest>(
+            Builders<UpdateRequest>.IndexKeys
+                .Ascending(x => x.Status)
+                .Ascending(x => x.TargetCollection),
+            new CreateIndexOptions { Unique = false }
+        ));
         
         CourseRecords.Indexes.CreateOne(new CreateIndexModel<CourseRecord>(
             Builders<CourseRecord>.IndexKeys.Ascending(x => x.CourseId).Ascending(x => x.Language),

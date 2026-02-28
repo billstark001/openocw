@@ -17,6 +17,9 @@ public static class Definitions
 
     public static readonly (int, string) CODE_ERR_DB_ERR = (114514, "Database Internal Error. Please report this to the developer. / {0}");
 
+    public static readonly (int, string) CODE_ERR_FORBIDDEN = (18, "Forbidden.");
+    public static readonly (int, string) CODE_ERR_NOT_FOUND = (19, "Not found.");
+
     // keys
 
     public const string KEY_REFRESH_TOKEN = ".Oocw.Token.Refresh";
@@ -24,4 +27,5 @@ public static class Definitions
     public const string KEY_ACCESS_TOKEN_FORMAT = ".Oocw.Token.Access.{0}";
 
     public const string ACCESS_COURSE_EDIT = "Course.Edit";
+    public const string ACCESS_CLASS_EDIT = "Class.Edit";
 }
