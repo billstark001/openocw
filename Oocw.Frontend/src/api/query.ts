@@ -1,14 +1,15 @@
 import { buildParams, QueryResult, getInfo } from "@/utils/query";
 
 export interface LecturerInfo {
-  id: number,
+  id: string,
   name: string
 }
 
 export interface CourseBrief {
   id: string,
   name: string,
-  className: string,
+  /** First class name, if available. */
+  className?: string,
   tags: string[],
   lecturers: LecturerInfo[],
   description: string,
@@ -24,110 +25,117 @@ export function defaultCourseBrief(): CourseBrief {
   return {
     id: "AAA.B123",
     name: "Test Course",
-    className: "what the hell is this?",
+    className: "Example class",
     tags: ["tag1", "标签2", "タグ3"],
     lecturers: [
-      { id: 114514, name: "Tadokoro Koji" },
-      { id: 1919810, name: "Yajuu Senpai" },
+      { id: "1", name: "Tadokoro Koji" },
+      { id: "2", name: "Yajuu Senpai" },
     ],
     description: "Test English\n日本語文字テスト\n中文文本测试",
   }
 }
 
-// info
+// ── internal types matching the backend ListResult<T> wrapper ─────────────
 
-export async function getCourseInfo(id: string, year?: number, className?: string, lang?: string): Promise<QueryResult<string>> {
-  const scheme = `/api/info/course/${encodeURIComponent(id)}?` + buildParams({
-    year: year, className: className, lang: lang,
-  });
-  return await getInfo<string>(scheme);
+interface _BackendCourseBrief {
+  id: string;
+  name: string;
+  tags: string[];
+  classes: { id: string; name: string }[];
+  lecturers: { id: string; name: string }[];
+  description: string;
+  image?: string;
 }
 
-export async function getCourseBrief(id: string, year?: number, className?: string, lang?: string): Promise<QueryResult<CourseBrief>> {
-  const scheme = `/api/info/coursebrief/${encodeURIComponent(id)}?` + buildParams({
-    year: year, className: className, lang: lang,
-  });
-  return await getInfo<CourseBrief>(scheme);
+interface _ListResult<T> {
+  list: T[];
+  totalCount?: number;
+  totalPage?: number;
 }
 
-export async function getFacultyBrief(id: number, lang?: string): Promise<QueryResult<FacultyBrief>> {
-  const scheme = `/api/info/faculty/${encodeURIComponent(id)}?` + buildParams({
-    lang: lang,
-  });
+function _adaptCourseBrief(b: _BackendCourseBrief): CourseBrief {
+  return {
+    id: b.id,
+    name: b.name,
+    className: b.classes?.[0]?.name,
+    tags: b.tags ?? [],
+    lecturers: (b.lecturers ?? []).map(l => ({ id: l.id, name: l.name })),
+    description: b.description,
+    imageLink: b.image,
+  };
+}
+
+export interface CourseDetail {
+  id: string;
+  name: string;
+  courseCode: string;
+  credit: number;
+  departments: string[];
+  lecturers: string[];
+  tags: string[];
+  content: string;
+  imageLink?: string;
+  classes: { id: string; name: string }[];
+}
+
+// ── info ──────────────────────────────────────────────────────────────────
+
+export async function getCourseInfo(id: string, classId?: string, lang?: string): Promise<QueryResult<CourseDetail>> {
+  const scheme = `/api/course/info/${encodeURIComponent(id)}?` + buildParams({ classId, lang });
+  return await getInfo<CourseDetail>(scheme);
+}
+
+export async function getFacultyBrief(id: string, lang?: string): Promise<QueryResult<FacultyBrief>> {
+  const scheme = `/api/info/faculty/${encodeURIComponent(id)}?` + buildParams({ lang });
   return await getInfo<FacultyBrief>(scheme);
 }
 
-// list
+// ── list ──────────────────────────────────────────────────────────────────
 
 export async function getCourseListByDepartment(
   id: string,
-  year?: number,
-  byclass?: boolean,
   lang?: string,
-  sort?: string,
-  filter?: string
+  page?: number,
+  pageSize?: number,
 ): Promise<QueryResult<CourseBrief[]>> {
-  const scheme = `/api/list/dept/${encodeURIComponent(id)}?`
-    + buildParams({
-      year: year,
-      byclass: byclass,
-      lang: lang,
-      sort: sort,
-      filter: filter,
-    });
-  return await getInfo<CourseBrief[]>(scheme);
+  const scheme = `/api/course/list/${encodeURIComponent(id)}?`
+    + buildParams({ lang, page, pageSize });
+  const raw = await getInfo<_ListResult<_BackendCourseBrief>>(scheme);
+  if (raw.status !== 200 || !raw.result) {
+    return { status: raw.status, info: raw.info };
+  }
+  return { status: 200, info: raw.info, result: raw.result.list.map(_adaptCourseBrief) };
 }
 
-export async function getCourseListByFaculty(
-  id: number,
-  year?: number,
-  byclass?: boolean,
+export async function getCourseList(
   lang?: string,
-  sort?: string,
-  filter?: string
+  page?: number,
+  pageSize?: number,
 ): Promise<QueryResult<CourseBrief[]>> {
-  const scheme = `/api/list/faculty/${encodeURIComponent(id)}?`
-    + buildParams({
-      year: year,
-      byclass: byclass,
-      lang: lang,
-      sort: sort,
-      filter: filter,
-    });
-  return await getInfo<CourseBrief[]>(scheme);
+  const scheme = `/api/course/list?` + buildParams({ lang, page, pageSize });
+  const raw = await getInfo<_ListResult<_BackendCourseBrief>>(scheme);
+  if (raw.status !== 200 || !raw.result) {
+    return { status: raw.status, info: raw.info };
+  }
+  return { status: 200, info: raw.info, result: raw.result.list.map(_adaptCourseBrief) };
 }
 
-// search
+// ── search ────────────────────────────────────────────────────────────────
 
-export interface SearchScheme extends Record<string, string | number | undefined> {
-  queryStr: string, 
-
-  restrictions?: string, 
-  sort?: string, 
-  filter?: string, 
-
-  dispCount?: number, 
-
-  page?: number, 
+export interface SearchParams extends Record<string, string | number | undefined> {
+  queryStr?: string;
+  page?: number;
+  pageSize?: number;
 }
 
-export async function getSearchResult(
-  mode: 'faculty', 
-  scheme: SearchScheme, 
-  lang?: string, 
-): Promise<QueryResult<FacultyBrief[]>>;
-
-export async function getSearchResult(
-  mode: 'class' | 'course', 
-  scheme: SearchScheme, 
-  lang?: string, 
-): Promise<QueryResult<CourseBrief[]>>;
-
-export async function getSearchResult(
-  mode: unknown, 
-  scheme: SearchScheme, 
-  lang?: string, 
-): Promise<unknown> {
-  const url = `/api/search/${mode}?` + buildParams(Object.assign(scheme, {lang: lang}));
-  return await getInfo<undefined>(url);
+export async function searchCourses(
+  params: SearchParams,
+  lang?: string,
+): Promise<QueryResult<CourseBrief[]>> {
+  const url = `/api/course/search?` + buildParams({ ...params, lang });
+  const raw = await getInfo<_ListResult<_BackendCourseBrief>>(url);
+  if (raw.status !== 200 || !raw.result) {
+    return { status: raw.status, info: raw.info };
+  }
+  return { status: 200, info: raw.info, result: raw.result.list.map(_adaptCourseBrief) };
 }
