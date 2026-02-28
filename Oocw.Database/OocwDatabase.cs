@@ -36,6 +36,10 @@ public class OocwDatabase
 
     public IMongoCollection<CourseRecord> CourseRecords { get; protected set; }
 
+    public IMongoCollection<Organization> Organizations { get; protected set; }
+
+    public IMongoCollection<GlobalSettings> GlobalSettings { get; protected set; }
+
     public const string DEFAULT_HOST = "mongodb://localhost:27017/";
 
 
@@ -77,6 +81,9 @@ public class OocwDatabase
 
         CourseRecords = Database.GetCollection<CourseRecord>(nameof(CourseRecord));
 
+        Organizations = Database.GetCollection<Organization>(nameof(Organization));
+        GlobalSettings = Database.GetCollection<GlobalSettings>(nameof(GlobalSettings));
+
         // indices
 
         CreateDataModelUniqueIdIndex(Courses);
@@ -107,6 +114,18 @@ public class OocwDatabase
         ClassInstances.Indexes.CreateOne(new CreateIndexModel<ClassInstance>(Builders<ClassInstance>.IndexKeys.Ascending(x => x.Lecturers)));
 
         Users.Indexes.CreateOne(new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(x => x.Departments)));
+
+        // organization indices
+        Organizations.Indexes.CreateOne(new CreateIndexModel<Organization>(
+            Builders<Organization>.IndexKeys.Ascending(x => x.Code),
+            new CreateIndexOptions { Unique = true }
+        ));
+
+        // global settings index (unique singleton)
+        GlobalSettings.Indexes.CreateOne(new CreateIndexModel<GlobalSettings>(
+            Builders<GlobalSettings>.IndexKeys.Ascending(x => x.Key),
+            new CreateIndexOptions { Unique = true }
+        ));
 
     }
 

@@ -25,4 +25,11 @@ export default defineConfig({
       }
     },
   },
+  // SSR build configuration
+  // Run `vite build --ssr src/entry-server.ts` to produce the server bundle.
+  // Run `vite build` to produce the client bundle (used for hydration).
+  ssr: {
+    // Inline all dependencies into the server bundle for simpler deployment.
+    noExternal: /./,
+  },
 });

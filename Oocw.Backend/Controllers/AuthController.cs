@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Oocw.Backend.Models;
 using Oocw.Backend.Services;
 using Oocw.Database;
@@ -62,9 +63,11 @@ public class AuthController : Controller
     }
 
     [HttpPost("auth")]
-    public AuthResult Auth(UnamePwdBody b)
+    public async Task<AuthResult> Auth(UnamePwdBody b)
     {
-        var u = DbService.Wrapper.QueryUser(b.uname);
+        var u = await DbService.Wrapper.Users
+            .Find(x => x.LoginName == b.uname && !x.Deleted)
+            .FirstOrDefaultAsync();
         if (u == null || !UserUtils.VerifyPassword(b.pwd, u.PasswordEncrypted))
             throw new ApiException(Definitions.CODE_ERR_BAD_UNAME_OR_PWD);
 
@@ -74,9 +77,9 @@ public class AuthController : Controller
     }
 
     [HttpPost("login")]
-    public AuthResult Login(UnamePwdBody b)
+    public async Task<AuthResult> Login(UnamePwdBody b)
     {
-        var val = Auth(b);
+        var val = await Auth(b);
 
         Response.Cookies.Append(Definitions.KEY_REFRESH_TOKEN, val.Token);
 

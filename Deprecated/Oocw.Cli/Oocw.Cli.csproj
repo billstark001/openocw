@@ -7,9 +7,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Oocw.Base\Oocw.Base.csproj" />
+	  <ProjectReference Include="..\..\Oocw.Base\Oocw.Base.csproj" />
 	  <ProjectReference Include="..\Oocw.Crawler\Oocw.Crawler.csproj" />
-	  <ProjectReference Include="..\Oocw.Database\Oocw.Database.csproj" />
+	  <ProjectReference Include="..\..\Oocw.Database\Oocw.Database.csproj" />
 	</ItemGroup>
 
 </Project>
