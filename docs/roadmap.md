@@ -18,61 +18,61 @@ by phase.  Within each phase, features are roughly ordered by priority.
 
 ---
 
-## Phase 1 – Core Course Workflows
+## Phase 1 – Core Course Workflows ✅
 
 ### Course Management
-- [ ] Create course (request → review → approval workflow)
-- [ ] Edit course metadata (request → review → approval)
-- [ ] Publish syllabus / lecture notes (request → approval)
-- [ ] Per-course discussion threads (public and private)
-- [ ] Course tagging and department assignment
+- [x] Create course (request → review → approval workflow)
+- [x] Edit course metadata (request → review → approval)
+- [x] Publish syllabus / lecture notes (request → approval)
+- [x] Per-course discussion threads (public and private)
+- [x] Course tagging and department assignment
 
 ### Class & Semester Management
-- [ ] Create and manage class sections
-- [ ] Create and manage semester instances of a class
-- [ ] Upload lecture materials (PDF, video links, text)
-- [ ] Copy materials from a previous semester
+- [x] Create and manage class sections
+- [x] Create and manage semester instances of a class
+- [x] Upload lecture materials (PDF, video links, text)
+- [x] Copy materials from a previous semester
 
 ### Student Enrolment
-- [ ] Browse enrolable courses for the current semester
-- [ ] Apply for enrolment (`CourseSelection` → `Application`)
-- [ ] Approve / reject enrolment (faculty / admin)
-- [ ] Withdraw enrolment
+- [x] Browse enrolable courses for the current semester
+- [x] Apply for enrolment (`CourseSelection` → `Application`)
+- [x] Approve / reject enrolment (faculty / admin)
+- [x] Withdraw enrolment
 
 ---
 
-## Phase 2 – Academic Interaction
+## Phase 2 – Academic Interaction ✅
 
 ### Assignments
-- [ ] Create assignment (faculty: linked to a `ClassInstance` content item)
-- [ ] Submit assignment (student: text and/or file upload)
-- [ ] Re-submit / revise submission (revision history preserved)
-- [ ] Grade submission (faculty; multiple re-grades allowed)
-- [ ] Leave grading comments via `CourseDiscussion`
+- [x] Create assignment (faculty: linked to a `ClassInstance` content item)
+- [x] Submit assignment (student: text and/or file upload)
+- [x] Re-submit / revise submission (revision history preserved)
+- [x] Grade submission (faculty; multiple re-grades allowed)
+- [x] Leave grading comments via `CourseDiscussion`
 
 ### Feedback
-- [ ] Students submit per-semester feedback
-- [ ] Faculty and admins view aggregated feedback
+- [x] Students submit per-semester feedback
+- [x] Faculty and admins view aggregated feedback
 
 ### Notifications
-- [ ] Trigger in-system notifications on key events (enrolment status, grades)
-- [ ] Mark individual or all notifications as read
-- [ ] REST endpoint: list recent / unread notifications
+- [x] Trigger in-system notifications on key events (enrolment status, grades)
+- [x] Mark individual or all notifications as read
+- [x] REST endpoint: list recent / unread notifications
 
 ---
 
-## Phase 3 – Administration & Moderation
+## Phase 3 – Administration & Moderation ✅
 
 ### Review Workflow
-- [ ] Reviewer queue: approve / reject pending course and content changes
-- [ ] Reviewer can directly assist opening a class on behalf of a faculty member
-- [ ] `UpdateRequest` audit trail for all patch-based changes
+- [x] Reviewer queue: approve / reject pending course and content changes
+- [x] Reviewer can directly assist opening a class on behalf of a faculty member
+- [x] `UpdateRequest` audit trail for all patch-based changes
 
 ### Admin Tools
-- [ ] Set current academic year and term (`GlobalSettings`)
-- [ ] Manage user roles (assign Student / Faculty / Reviewer / Admin)
-- [ ] Manage `Organization` hierarchy (add, edit, remove entries)
-- [ ] View and export course feedback
+- [x] Set current academic year and term (`GlobalSettings`)
+- [x] Manage user roles (assign Student / Faculty / Reviewer / Admin)
+- [x] Manage `Organization` hierarchy (add, edit, remove entries)
+- [x] View and export course feedback
 
 ---
 

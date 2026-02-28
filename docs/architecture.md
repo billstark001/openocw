@@ -25,9 +25,10 @@ The system is divided into four main layers:
 │                  Oocw.Database                  │  MongoDB 7+
 │  Collections: Course · Class · ClassInstance   │
 │               User · Notification              │
-│               CourseDiscussion                  │
+│               CourseDiscussion · Feedback       │
 │               CourseSelection                   │
 │               AssignmentSubmission              │
+│               UpdateRequest                     │
 │               Organization · GlobalSettings    │
 │               CourseRecord (search index)       │
 └─────────────────────────────────────────────────┘
@@ -61,6 +62,8 @@ Contains all MongoDB model classes and the `OocwDatabase` context class.
 | `Organization` | `Organization` | Hierarchical institutional unit (school → department → programme). |
 | `GlobalSettings` | `GlobalSettings` | Singleton: current academic year and term flags. |
 | `CourseRecord` | `CourseRecord` | Denormalised, language-specific search index document. |
+| `Feedback` | `Feedback` | Per-student rating and comment for a `ClassInstance`. |
+| `UpdateRequest` | `UpdateRequest` | Patch-based audit record for the review/approval workflow. |
 
 **Technical base types** (`Oocw.Database.Models.Technical`)
 - `DataModel` – base class with `Id`, `CreateTime`, `UpdateTime`, `Deleted`.
@@ -74,7 +77,16 @@ ASP.NET Core 8 Web API.
 
 | Controller | Route prefix | Responsibilities |
 |-----------|-------------|-----------------|
-| `CourseController` | `/api/course` | List, search, retrieve, and edit courses. |
+| `CourseController` | `/api/course` | List, search, retrieve, create, and edit courses. |
+| `ClassController` | `/api/class` | List, retrieve, create, edit, and delete class sections. |
+| `ClassInstanceController` | `/api/class-instance` | List, retrieve, create, edit instances; add/remove/copy content. |
+| `SelectionController` | `/api/selection` | Enrolment: browse available, apply, approve, reject, withdraw. |
+| `AssignmentController` | `/api/assignment` | Create assignments, submit, revise, grade submissions. |
+| `DiscussionController` | `/api/discussion` | Post and list course discussion threads. |
+| `NotificationController` | `/api/notification` | List notifications; mark individual or all as read. |
+| `ReviewController` | `/api/review` | Reviewer queue; approve or reject pending `UpdateRequest` items. |
+| `AdminController` | `/api/admin` | `GlobalSettings`, user roles, `Organization` CRUD, feedback export. |
+| `FeedbackController` | `/api/feedback` | Students submit feedback; faculty view aggregated summary. |
 | `AuthController` | `/api/user` | Register, login, JWT refresh, logout. |
 | `WebController` | `/` | Serve the SPA `index.html` (or redirect). |
 
@@ -105,6 +117,14 @@ src/
 
 SSR entry points (`entry-server.ts` / `entry-client.ts`) enable server-side
 rendering via Vite's SSR build mode when the backend serves the SPA.
+
+### Oocw.Tests
+xUnit test project covering pure-logic components (no MongoDB required):
+- `UserUtilsTests` – username/password validation and PBKDF2 hashing.
+- `MultiLingualFieldTests` – language lookup, fallback, and mutation.
+- `DataModelTests` – timestamp helpers and random-ID generation.
+- `UpdateRequestTests` – default status and reviewer field defaults.
+- `AssignmentSubmissionTests` – grade default and empty collection defaults.
 
 ---
 
@@ -139,6 +159,21 @@ Client → GET  /api/user/status  (Authorization: Bearer <access_token>)
 ```
 Student → POST /api/selection/apply  { classInstanceId }
 Admin   → POST /api/selection/approve { selectionId }
+Student ← Notification (status update)
+```
+
+### Assignment Submission
+```
+Student → POST /api/assignment/submit  { classInstanceId, contentId, contents }
+Faculty → POST /api/assignment/grade   { submissionId, grade, comment }
+Student ← Notification (grade posted)
+```
+
+### Review Workflow
+```
+Faculty  → POST /api/review/...  (via UpdateRequest)
+Reviewer → GET /api/review/queue
+Reviewer → POST /api/review/approve  { requestId }
 ```
 
 ---
