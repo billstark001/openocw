@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Linq;
+using System.Net;
 
 using Oocw.Database;
 using Oocw.Base;
+using Oocw.Database.Models;
+using Oocw.Backend.Auth;
+using Oocw.Backend.Api;
 
 namespace Oocw.Backend.Utils;
 
@@ -50,6 +55,16 @@ public static class QueryUtils
         dPage = dPage > 1 ? dPage : 1;
 
         return (dCount, dPage);
+    }
+
+    public static User GetAuthenticatedUser(this HttpContext context, User.Role minRole = User.Role.Guest)
+    {
+        var user = context.GetUser();
+        if (user == null)
+            throw new ApiException((int)HttpStatusCode.Unauthorized);
+        if ((int)user.Group < (int)minRole)
+            throw new ApiException((int)HttpStatusCode.Forbidden);
+        return user;
     }
 
 }
