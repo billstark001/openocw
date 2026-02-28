@@ -1,0 +1,25 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: openocw
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "8080:8080"
+    environment:
+      Database__ConnectionString: "mongodb://mongo:27017/"
+      JWT__Secret: "CHANGE_ME_to_a_long_random_secret_key_at_least_32_chars"  # MUST be overridden in production
+      JWT__AccessTokenExpiry: "3600"
+      JWT__RefreshTokenExpiry: "604800"
+      ASPNETCORE_ENVIRONMENT: Production
+
+volumes:
+  mongo_data:

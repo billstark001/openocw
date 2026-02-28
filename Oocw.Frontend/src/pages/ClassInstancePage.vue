@@ -74,7 +74,7 @@ onMounted(async () => {
 async function enrol() {
   if (!instance.value) return;
   const res = await applyEnrolment(instance.value.id);
-  enrolMsg.value = res.status === 200 ? 'Enrolled!' : `Error: ${res.info}`;
+  enrolMsg.value = res.status === 200 ? t('status.enrolled') : `${t('status.error')}${res.info}`;
 }
 </script>
 

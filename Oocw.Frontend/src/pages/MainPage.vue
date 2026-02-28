@@ -11,7 +11,7 @@
     </div>
     <div class="search-inner">
       <input type="search" class="search-input" v-model="searchText" v-on:keyup="onKeyUp" autocomplete="off"
-        v-bind:placeholder="t('searchbar.search')" v-bind:aria-label="t('searchbar.search.hint')">
+        v-bind:placeholder="t('searchbar.placeholder')" v-bind:aria-label="t('searchbar.hint')">
       <div class="img-container" v-on:click="doSearch('kw')">
         <img src="../assets/svg/search.svg">
       </div>
@@ -23,7 +23,7 @@
       <button :class="['round-button', 's-main', 'h', currentMode === 'faculty' ? 'active' : '']" @click="doSearch('faculty')">{{ t('hp.search.faculty') }}</button>
       <button :class="['round-button', 's-main', 'h', currentMode === 'code' ? 'active' : '']" @click="doSearch('code')">{{ t('hp.search.code') }}</button>
       <button :class="['round-button', 's-main', 'h', currentMode === 'name' ? 'active' : '']" @click="doSearch('name')">{{ t('hp.search.name') }}</button>
-      <span>{{ t('hp.search.hint.rear') }}</span>
+      <span>{{ t('hp.search.hintRear') }}</span>
     </div>
   </div>
 

@@ -133,7 +133,7 @@ export interface SearchParams {
 export async function searchCourses(
   params: SearchParams,
   lang?: string,
-): Promise<QueryResult<CourseBrief[]> & { totalPage?: number }> {
+): Promise<QueryResult<CourseBrief[]> & { totalPage?: number; totalCount?: number }> {
   const url = `/api/course/search?` + buildParams({ ...params, lang });
   const raw = await getInfo<_ListResult<_BackendCourseBrief>>(url);
   if (raw.status !== 200 || !raw.result) {
@@ -144,5 +144,6 @@ export async function searchCourses(
     info: raw.info,
     result: raw.result.list.map(_adaptCourseBrief),
     totalPage: raw.result.totalPage,
+    totalCount: raw.result.totalCount,
   };
 }

@@ -78,7 +78,7 @@ function togglePwdForm() {
 async function changePwd() {
   if (!oldPwd.value || !newPwd.value) { pwdMsg.value = 'Please fill in both fields.'; return; }
   const res = await requestPasswordChange(oldPwd.value, newPwd.value);
-  pwdMsg.value = res.info || (res.status === 200 ? 'Password changed.' : 'Error.');
+  pwdMsg.value = res.status === 200 ? t('status.pwdChanged') : `${t('status.error')}${res.info}`;
   if (res.status === 200) { oldPwd.value = ''; newPwd.value = ''; }
 }
 

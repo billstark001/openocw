@@ -39,7 +39,7 @@ export async function getSettings() {
 }
 
 export async function updateSettings(settings: GlobalSettings) {
-  return postInfo<void>('/api/admin/settings', settings as unknown as Record<string, string | number | boolean | null | undefined>);
+  return postInfo<void>('/api/admin/settings', settings);
 }
 
 export async function listUsers(page = 1, pageSize = 20) {

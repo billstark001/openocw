@@ -81,6 +81,7 @@ export async function getInfo<T>(
 
 export async function postInfo<T>(
   path: string,
+  body?: object,
   params?: ParamsRecord
 ): Promise<QueryResult<T>> {
   return fetchServer(
@@ -88,7 +89,7 @@ export async function postInfo<T>(
       credentials: 'include',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params || {}),
+      body: JSON.stringify(body || {}),
     })
   );
 }

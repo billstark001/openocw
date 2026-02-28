@@ -18,19 +18,17 @@ export default {
     notifications: ["Notifications", "通知", "通知"],
   },
   searchbar: {
-    search: {
-      _default: ["Search", "検索", "搜索"],
-      hint:["Type to search", "科目名・講師名・シラバス内容検索", "根据科目、讲师、关键词等搜索"]
-    },
+    placeholder: ["Search", "検索", "搜索"],
+    hint: ["Type to search", "科目名・講師名・シラバス内容検索", "根据科目、讲师、关键词等搜索"],
   },
   hp: {
     search: {
-      "hint": ["Search by: ", " ", "按："],
-      "kw": ["Keywords", "キーワード", "关键词"],
-      "faculty": ["Faculty", "教員", "讲师"],
-      "code": ["Course Code", "科目コード", "科目编号"],
-      "name": ["Course Name", "科目名", "科目名称"],
-      "hint.rear": [" ", "で探す", "搜索"]
+      hint: ["Search by: ", " ", "按："],
+      kw: ["Keywords", "キーワード", "关键词"],
+      faculty: ["Faculty", "教員", "讲师"],
+      code: ["Course Code", "科目コード", "科目编号"],
+      name: ["Course Name", "科目名", "科目名称"],
+      hintRear: [" ", "で探す", "搜索"],
     },
   },
   flt: {
@@ -159,5 +157,12 @@ export default {
     newPwd: ["New Password", "新しいパスワード", "新密码"],
     enrolments: ["My Enrolments", "受講中の科目", "我的选课"],
     noEnrolments: ["No active enrolments.", "受講中の科目がありません。", "暂无选课记录。"],
+  },
+  status: {
+    saved: ["Saved.", "保存しました。", "已保存。"],
+    error: ["Error: ", "エラー：", "错误："],
+    pwdChanged: ["Password changed.", "パスワードを変更しました。", "密码已修改。"],
+    enrolled: ["Enrolled!", "登録しました！", "选课成功！"],
+    submitted: ["Submitted!", "提出しました！", "提交成功！"],
   },
 } as LanguageResource;

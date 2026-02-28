@@ -60,7 +60,7 @@ async function doSearch() {
   const result = await searchCourses(buildParams(), locale.value);
   searchResult.value = result;
   if (result.totalPage) totalPages.value = result.totalPage;
-  if (result.result) totalCount.value = result.result.length;
+  totalCount.value = result.totalCount ?? result.result?.length ?? null;
 }
 
 function changePage(p: number) {

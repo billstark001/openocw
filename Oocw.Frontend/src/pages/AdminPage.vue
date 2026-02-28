@@ -92,7 +92,7 @@ async function loadSettings() {
 
 async function saveSettings() {
   const res = await updateSettings({ ...settings });
-  settingsMsg.value = res.status === 200 ? 'Saved.' : `Error: ${res.info}`;
+  settingsMsg.value = res.status === 200 ? t('status.saved') : `${t('status.error')}${res.info}`;
 }
 
 // Users

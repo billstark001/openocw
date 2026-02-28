@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Oocw.Backend.Api.Controllers;
 
@@ -25,20 +26,20 @@ public class WebController : Controller
     }
 
     [HttpGet("/")]
-    public ActionResult<string> GetIndex()
+    public async Task<ActionResult<string>> GetIndex()
     {
         try
         {
             var succ = _pageCache.TryGetValue(_indexPath, out var txt);
             if (!succ)
             {
-                txt = System.IO.File.ReadAllText(_indexPath, Encoding.UTF8);
+                txt = await System.IO.File.ReadAllTextAsync(_indexPath, Encoding.UTF8);
                 _pageCache[_indexPath] = txt;
             }
             if (txt == null)
                 throw new NotImplementedException();
             Response.ContentType = "text/html; charset=utf-8";
-            Response.WriteAsync(txt).Wait();
+            await Response.WriteAsync(txt);
             return new EmptyResult();
         }
         catch (Exception e)

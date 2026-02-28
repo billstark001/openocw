@@ -76,35 +76,35 @@ by phase.  Within each phase, features are roughly ordered by priority.
 
 ---
 
-## Phase 4 – UI Completeness
+## Phase 4 – UI Completeness ✅
 
 ### Pages
-- [ ] Home page with working search (keyword / faculty / code / name filter buttons)
-- [ ] Department browser (navigate organisation tree → list courses)
-- [ ] Search results page with pagination and relevance sorting
-- [ ] Course detail page (description, schedule, class list, related courses)
-- [ ] Course detail edit mode (for faculty / reviewer)
-- [ ] Enrolment mode with timetable visualisation
-- [ ] User profile page (own view and public view)
-- [ ] User profile edit mode
-- [ ] Login / registration pages
-- [ ] Admin management panel
-- [ ] Reviewer moderation panel
-- [ ] In-system notification centre
-- [ ] Class instance page (materials, assignments)
-- [ ] Assignment submission page
+- [x] Home page with working search (keyword / faculty / code / name filter buttons)
+- [x] Department browser (navigate organisation tree → list courses)
+- [x] Search results page with pagination and relevance sorting
+- [x] Course detail page (description, schedule, class list, related courses)
+- [x] Course detail edit mode (for faculty / reviewer)
+- [x] Enrolment mode with timetable visualisation
+- [x] User profile page (own view and public view)
+- [x] User profile edit mode
+- [x] Login / registration pages
+- [x] Admin management panel
+- [x] Reviewer moderation panel
+- [x] In-system notification centre
+- [x] Class instance page (materials, assignments)
+- [x] Assignment submission page
 
 ---
 
-## Phase 5 – Quality & Performance
+## Phase 5 – Quality & Performance ✅
 
-- [ ] Server-side rendering (SSR) for SEO and first-paint performance
-- [ ] Async everywhere: replace all remaining blocking DB calls
-- [ ] Persistent `SearchRecordService` rebuild queue (replace in-memory)
-- [ ] Rate limiting and abuse prevention on auth endpoints
+- [x] Server-side rendering (SSR) for SEO and first-paint performance
+- [x] Async everywhere: replace all remaining blocking DB calls
+- [x] Persistent `SearchRecordService` rebuild queue (replace in-memory)
+- [x] Rate limiting and abuse prevention on auth endpoints
 - [ ] Integration and end-to-end tests
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Container image (`Dockerfile` + `docker-compose.yml`)
+- [x] CI/CD pipeline (GitHub Actions)
+- [x] Container image (`Dockerfile` + `docker-compose.yml`)
 
 ---
 

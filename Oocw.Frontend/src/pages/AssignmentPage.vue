@@ -68,7 +68,7 @@ onMounted(async () => {
 async function submit() {
   if (!answerText.value.trim()) return;
   const res = await submitAssignment(instanceId, contentId, answerText.value);
-  submitMsg.value = res.status === 200 ? 'Submitted!' : `Error: ${res.info}`;
+  submitMsg.value = res.status === 200 ? t('status.submitted') : `${t('status.error')}${res.info}`;
   if (res.status === 200) {
     const subRes = await getMySubmission(instanceId, contentId);
     if (subRes.status === 200 && subRes.result) submission.value = subRes.result;
