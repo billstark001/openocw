@@ -1,10 +1,8 @@
 using System.Linq;
 using System.Collections.Generic;
 
-using MeCab.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using Oocw.Database;
 using Oocw.Backend.Schemas;
@@ -17,6 +15,7 @@ using System.Threading.Tasks;
 using Oocw.Backend.Models;
 using Oocw.Backend.Api;
 using System.Net;
+using Oocw.Database.Models.Technical;
 
 namespace Oocw.Backend.Controllers;
 
@@ -42,11 +41,24 @@ public class CourseController : ControllerBase
         pagination.Sanitize();
         lang ??= this.TryGetLanguage();
 
-        var list = await SearchService.SearchCourse(filter, pagination, lang);
+        var records = await SearchService.SearchCourse(filter, pagination, lang);
 
-        // TODO reform to course brief
+        if (records.Count == 0)
+            return new ListResult<CourseBrief>(null) { TotalCount = 0, TotalPage = 0 };
 
-        throw new NotImplementedException();
+        var courseIds = records.Select(r => r.CourseId).Distinct().ToList();
+        var courses = await DbService.Wrapper.Courses
+            .Find(Builders<Course>.Filter.In(x => x.Id, courseIds))
+            .ToListAsync();
+
+        var courseMap = courses.ToDictionary(c => c.Id);
+
+        var briefs = records
+            .Where(r => courseMap.ContainsKey(r.CourseId))
+            .Select(r => BuildCourseBrief(courseMap[r.CourseId], lang))
+            .ToList();
+
+        return new ListResult<CourseBrief>(briefs) { TotalCount = briefs.Count };
     }
 
     [HttpGet("list/{id}")]
@@ -72,14 +84,26 @@ public class CourseController : ControllerBase
         pagination.Sanitize();
         lang ??= this.TryGetLanguage();
 
-        var cursor = DbService.Wrapper.Courses.Find(filter.GetCourseFilterDefinition());
-        var pagedCursor = cursor
-            .Skip(pagination.Page * pagination.PageSize - pagination.Page)
-            .Limit(pagination.PageSize);
-        
-        var list = await pagedCursor.ToListAsync();
+        var filterDef = filter.GetCourseFilterDefinition()
+            ?? FilterDefinition<Course>.Empty;
 
-        throw new NotImplementedException();
+        var total = await DbService.Wrapper.Courses.CountDocumentsAsync(filterDef);
+
+        var list = await DbService.Wrapper.Courses
+            .Find(filterDef)
+            .Skip((pagination.Page - 1) * pagination.PageSize)
+            .Limit(pagination.PageSize)
+            .ToListAsync();
+
+        var briefs = list.Select(c => BuildCourseBrief(c, lang)).ToList();
+
+        int pageSize = pagination.PageSize > 0 ? pagination.PageSize : 1;
+
+        return new ListResult<CourseBrief>(briefs)
+        {
+            TotalCount = (int)total,
+            TotalPage = (int)Math.Ceiling((double)total / pageSize),
+        };
     }
 
     [HttpGet("info/{code}")]
@@ -87,32 +111,79 @@ public class CourseController : ControllerBase
     {
         lang ??= this.TryGetLanguage();
 
-        var crs = await DbService.Wrapper.Courses.Find(x => x.CourseCode == code).FirstOrDefaultAsync();
+        var crs = await DbService.Wrapper.Courses
+            .Find(x => x.CourseCode == code && !x.Deleted)
+            .FirstOrDefaultAsync();
+
         var cls = !string.IsNullOrWhiteSpace(classId) && crs != null
-            ? await DbService.Wrapper.Classes.Find(x => x.CourseId == crs.Id && x.Id == classId).FirstOrDefaultAsync()
+            ? await DbService.Wrapper.Classes
+                .Find(x => x.CourseId == crs.Id && x.Id == classId && !x.Deleted)
+                .FirstOrDefaultAsync()
             : null;
-        
+
         if (crs == null || (!string.IsNullOrWhiteSpace(classId) && cls == null))
         {
-            throw new ApiException((int) HttpStatusCode.NotFound);
+            throw new ApiException((int)HttpStatusCode.NotFound);
         }
 
-        // TODO implement a better logic
-        throw new NotImplementedException();
-        // return crs.ToString() + cls?.ToString() ?? "";
-
+        return BuildCourseSchema(crs, cls, lang);
     }
 
 
     [HttpPost("edit")]
-    public async Task Edit(string? lang, [FromBody] CourseSchema course) {
-        
+    public async Task Edit(string? lang, [FromBody] CourseSchema course)
+    {
         lang ??= this.TryGetLanguage();
-        if (string.IsNullOrWhiteSpace(course.Id)) {
-            throw new ApiException((int) HttpStatusCode.NotFound);
+        if (string.IsNullOrWhiteSpace(course.Id))
+        {
+            throw new ApiException((int)HttpStatusCode.NotFound);
         }
 
-        throw new NotImplementedException();
+        var existing = await DbService.Wrapper.Courses
+            .Find(x => x.Id == course.Id && !x.Deleted)
+            .FirstOrDefaultAsync()
+            ?? throw new ApiException((int)HttpStatusCode.NotFound);
+
+        existing.Name[lang] = course.Name;
+        existing.Content[lang] = course.Content;
+        existing.CourseCode = course.CourseCode;
+        existing.Credit = course.Credit;
+        existing.Departments = course.Departments;
+        existing.Lecturers = course.Lecturers;
+        existing.Tags = course.Tags;
+        existing.Image = course.ImageLink;
+        existing.SetUpdateTime();
+
+        await DbService.Wrapper.Courses.ReplaceOneAsync(x => x.Id == existing.Id, existing);
+
+        await SearchService.MarkCourseRecordDirty(existing.Id!);
     }
-    
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    private static CourseBrief BuildCourseBrief(Course c, string lang) => new()
+    {
+        Id = c.Id,
+        Name = c.Name[lang] ?? c.Name.GetTranslation(lang) ?? "",
+        Tags = c.Tags,
+        Lecturers = c.Lecturers.Select(l => new EntityReference { Id = l }).ToList(),
+        Description = c.Content[lang] ?? "",
+        Image = c.Image,
+    };
+
+    private static CourseSchema BuildCourseSchema(Course c, Class? cls, string lang) => new()
+    {
+        Id = c.Id,
+        Name = c.Name[lang] ?? c.Name.GetTranslation(lang) ?? "",
+        CourseCode = c.CourseCode,
+        Credit = c.Credit,
+        Departments = c.Departments,
+        Lecturers = c.Lecturers,
+        Tags = c.Tags,
+        Content = c.Content[lang] ?? "",
+        ImageLink = c.Image,
+        Classes = cls != null
+            ? [new EntityReference { Id = cls.Id, Name = cls.Name }]
+            : [],
+    };
 }

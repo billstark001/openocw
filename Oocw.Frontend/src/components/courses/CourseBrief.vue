@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps } from 'vue';
+import { computed } from 'vue';
 import { CourseBrief as CourseBriefInfo, defaultCourseBrief } from '@/api/query';
 
 const DESC_MAX_LENGTH = 200;

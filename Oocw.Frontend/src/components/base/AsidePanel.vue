@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import anime from 'animejs';
+import { animate } from 'animejs';
 
 const props = defineProps<{
   show?: boolean
@@ -25,17 +25,15 @@ function showAside() {
   }
   root.value.style.display = 'block';
   root.value.style.pointerEvents = 'auto';
-  anime({
-    targets: backdrop.value,
+  if (backdrop.value) animate(backdrop.value, {
     opacity: [0, 1],
-    easing: 'easeOutQuart',
+    ease: 'easeOutQuart',
     duration: 300,
   });
-  anime({
-    targets: aside.value,
+  if (aside.value) animate(aside.value, {
     opacity: [0.7, 1],
     translateX: ['-100%', '0%'],
-    easing: 'easeOutQuart',
+    ease: 'easeOutQuart',
     duration: 300,
   });
 }
@@ -44,20 +42,18 @@ function hideAside(duration: number = 300, duration2: number = 300) {
     return;
   }
   root.value.style.pointerEvents = 'none';
-  anime({
-    targets: backdrop.value,
+  if (backdrop.value) animate(backdrop.value, {
     opacity: [1, 0],
-    easing: 'easeOutQuart',
+    ease: 'easeOutQuart',
     duration,
-    complete: () => {
+    onComplete: () => {
       root.value!.style.display = 'block';
     },
   });
-  anime({
-    targets: aside.value,
+  if (aside.value) animate(aside.value, {
     opacity: [1, 0.7],
     translateX: ['0%', '-100%'],
-    easing: 'easeOutQuart',
+    ease: 'easeOutQuart',
     duration: duration2,
   });
 }

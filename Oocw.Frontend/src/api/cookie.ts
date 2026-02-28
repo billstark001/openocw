@@ -18,7 +18,3 @@ export function getCookieRaw(key: string) {
   }
   return '';
 }
-
-function isNullOrWhiteSpace(s: string | null | undefined) {
-  return s === null || s === undefined || s.trim() === '';
-}

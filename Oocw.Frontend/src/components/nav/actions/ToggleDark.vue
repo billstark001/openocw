@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import anime from 'animejs';
+import { animate } from 'animejs';
 import { Settings } from '@/utils/settings';
 import NavItem from '@/components/base/NavItem.vue';
 import { useUIStore } from '@/stores/UIStore';
@@ -58,7 +58,7 @@ const properties = {
     lines: { opacity: 0 },
   },
   common: {
-    easing: 'easeInOutQuart',
+    ease: 'easeInOutQuart',
     duration: 300,
   },
 };
@@ -96,24 +96,20 @@ onMounted(() => {
 const toggleDarkMode = () => {
   const endProperty = getProperty(!Settings.darkMode);
 
-  anime({
-    targets: svgRef.value,
+  if (svgRef.value) animate(svgRef.value, {
     rotate: endProperty.svg.rotate,
     ...properties.common,
   });
-  anime({
-    targets: maskedCircleRef.value,
+  if (maskedCircleRef.value) animate(maskedCircleRef.value, {
     cx: endProperty.maskedCircle.cx,
     cy: endProperty.maskedCircle.cy,
     ...properties.common,
   });
-  anime({
-    targets: centerCircleRef.value,
+  if (centerCircleRef.value) animate(centerCircleRef.value, {
     r: endProperty.centerCircle.r,
     ...properties.common,
   });
-  anime({
-    targets: linesRef.value,
+  if (linesRef.value) animate(linesRef.value, {
     opacity: endProperty.lines.opacity,
     ...properties.common,
   });
